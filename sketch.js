@@ -1,5 +1,5 @@
 let main_board = [[]];
-let main_turn = "R";
+let main_turn = "B";
 let main_state = "ongoing";
 let status = "";
 let AI_side = "B";
@@ -7,13 +7,23 @@ let AI_side = "B";
 function setup() {
   createCanvas(600, 600);
   main_board = create_new_board();
+  let whoStarts = Math.floor(Math.random() * 2);
+  main_turn = whoStarts == 0 ? "R" : "B";
+  if (AI_side == main_turn) {
+    setTimeout(() => {
+      console.log("hello");
+      main_place(ai_move() + 1);
+    }, 500);      
+  }
 }
 
 function draw() {
   background(220);
   textSize(25);
+  fill(0);
   text("Connect 4 Very Hard AI", 30, 50);
   textSize(20);
+  text("Type the slot you want to place", 250, 250);
   text("By: Wonkanese", 30, 75);
   draw_board();
   draw_tiles(main_board);
@@ -223,7 +233,9 @@ function keyPressed() {
       main_place(slot_to_move + 1);
       main_state = game_state(main_board);
       if (main_state == "ongoing") {
-        main_place(ai_move() + 1);
+        setTimeout(() => {
+          main_place(ai_move() + 1);
+        }, 1000); // if don't put 1 second timer it's weird 
       }
     }
   }
@@ -250,23 +262,23 @@ function copy_board_place(board, slot, turn) {
   return new_board;
 }
 
-function score(result) {
+function getScore(result, depth) {
   if (result == "tie") {
     return 0;
   }
   if (result == "B") {
-    return 1;
+    return 10 - depth;
   }
-  return -1;
+  return -10 + depth;
 }
 
 function minimax(board, depth, maximizing) {
-  console.log(depth);
+  //console.log(depth);
   let result = game_state(board);
   if (result != "ongoing") {
-    return score(result);
+    return getScore(result, depth);
   }
-  if (depth >= 5) {
+  if (depth >= 4) {
     return 0;
   }
   if (maximizing) {
