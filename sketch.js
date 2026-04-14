@@ -3,6 +3,10 @@ let main_turn = "B";
 let main_state = "ongoing";
 let status = "";
 let AI_side = "B";
+// BLUE IS YELLOW I REALIZED AFTER IN THE REAL GAME
+const CELL = 58;
+const BOARD_X = (600 - 7 * CELL) / 2; // 97
+const BOARD_Y = 108;
 
 function setup() {
   createCanvas(600, 600);
@@ -12,19 +16,23 @@ function setup() {
   if (AI_side == main_turn) {
     setTimeout(() => {
       console.log("hello");
-      main_place(ai_move() + 1);
+      // make ai first move if moving first the center (optimal move)
+      main_place(4);
     }, 500);      
   }
 }
 
 function draw() {
-  background(220);
-  textSize(25);
-  fill(0);
-  text("Connect 4 Very Hard AI", 30, 50);
-  textSize(20);
-  text("Type the slot you want to place", 250, 250);
-  text("By: Wonkanese", 30, 75);
+  background(18, 22, 42);
+  noStroke();
+  fill(255);
+  textSize(22);
+  textStyle(BOLD);
+  text("Connect 4  — Very Hard AI", BOARD_X, 42);
+  textStyle(NORMAL);
+  textSize(13);
+  fill(140, 155, 200);
+  text("By Wonkanese   •   Press 1–7 to place a piece", BOARD_X, 64);
   draw_board();
   draw_tiles(main_board);
   draw_status();
@@ -35,26 +43,29 @@ function draw_status() {
   if (main_state == "ongoing") {
     if (main_turn == "R") {
       status = "Red's turn";
-      status_color = color(255, 0, 0);
+      status_color = color(220, 75, 75);
     } else {
-      status = "Blue's turn";
-      status_color = color(0, 0, 255);
+      status = "Yellow's turn";
+      status_color = color(224, 219, 70);
     }
   } else {
     if (main_state == "R") {
-      status = "Red Won";
-      status_color = color(255, 0, 0);
+      status = "Red Won!";
+      status_color = color(220, 75, 75);
     } else if (main_state == "tie") {
-      status = "Tie";
-      status_color = color(0, 0, 0);
+      status = "It's a Tie!";
+      status_color = color(180, 185, 210);
     } else {
-      status = "Blue Won";
-      status_color = color(0, 0, 255);
+      status = "Yellow Won!";
+      status_color = color(224, 219, 70);
     }
   }
-  textSize(25);
+  noStroke();
+  textSize(22);
+  textStyle(BOLD);
   fill(status_color);
-  text(status, 70, 500);
+  text(status, BOARD_X, BOARD_Y + 7 * CELL + 42);
+  textStyle(NORMAL);
 }
 
 function create_new_board() {
@@ -66,40 +77,44 @@ function create_new_board() {
 }
 
 function draw_board() {
-  let start_y = height / 4;
-  let sep = 30;
-  let h = 300;
-  textSize(25);
-  strokeWeight(3);
-  fill(0);
-  for (let i = 1; i < 9; i++) {
-    line(i * sep, start_y, i * sep, start_y + h);
-    if (i != 8) {
-      text(i, (i + 0.25) * sep, start_y);
+  noStroke();
+  fill(38, 80, 185);
+  rect(BOARD_X - 10, BOARD_Y - 10, 7 * CELL + 20, 7 * CELL + 20, 14);
+
+  // Column numbers
+  fill(180, 200, 255);
+  textSize(14);
+  textStyle(BOLD);
+  for (let i = 0; i < 7; i++) {
+    text(i + 1, BOARD_X + i * CELL + CELL / 2 - 4, BOARD_Y - 16);
+  }
+  textStyle(NORMAL);
+
+  // Empty cell holes
+  fill(14, 18, 38);
+  for (let row = 0; row < 7; row++) {
+    for (let col = 0; col < 7; col++) {
+      circle(BOARD_X + col * CELL + CELL / 2, BOARD_Y + row * CELL + CELL / 2, CELL - 10);
     }
   }
-  line(sep, start_y + h, sep * 8, start_y + h);
 }
 
 function draw_tiles(board) {
-  let sep_x = 30;
-  let sep_y = 42;
-  let b = 430;
-  strokeWeight(2);
   board.forEach((row, y) => {
     row.forEach((tile, x) => {
-      let x_pos = (x + 1) * sep_x + 15;
-      let y_pos = b - y * sep_y;
-      let c;
+      if (tile == "") return;
+      let x_pos = BOARD_X + x * CELL + CELL / 2;
+      let y_pos = BOARD_Y + (6 - y) * CELL + CELL / 2;
       if (tile == "R") {
-        c = color(255, 0, 0);
+        fill(215, 60, 60);
+        stroke(255, 130, 130);
       } else {
-        c = color(0, 0, 255);
+        fill(217, 225, 55);
+        stroke(240, 236, 19);
       }
-      fill(c);
-      if (tile != "") {
-        circle(x_pos, y_pos, 20);
-      }
+      strokeWeight(2);
+      circle(x_pos, y_pos, CELL - 10);
+      noStroke();
     });
   });
 }
@@ -235,12 +250,12 @@ function keyPressed() {
       if (main_state == "ongoing") {
         setTimeout(() => {
           main_place(ai_move() + 1);
-        }, 1000); // if don't put 1 second timer it's weird 
+        }, 100); 
       }
     }
   }
 }
-
+// not used
 function random_vs_random() {
   main_state = game_state(main_board);
   if (main_state == "ongoing") {
@@ -262,69 +277,3 @@ function copy_board_place(board, slot, turn) {
   return new_board;
 }
 
-function getScore(result, depth) {
-  if (result == "tie") {
-    return 0;
-  }
-  if (result == "B") {
-    return 10 - depth;
-  }
-  return -10 + depth;
-}
-
-function minimax(board, depth, maximizing) {
-  //console.log(depth);
-  let result = game_state(board);
-  if (result != "ongoing") {
-    return getScore(result, depth);
-  }
-  if (depth >= 4) {
-    return 0;
-  }
-  if (maximizing) {
-    let best_score = -Infinity;
-    for (let move of available_moves(board)) {
-      let new_board = copy_board_place(board, move, AI_side);
-      let score = minimax(new_board, depth + 1, false);
-      if (score > best_score) {
-        best_score = score;
-      }
-    }
-    return best_score;
-  } else {
-    let best_score = Infinity;
-    for (let move of available_moves(board)) {
-      let new_board = copy_board_place(board, move, "R");
-      let score = minimax(new_board, depth + 1, true);
-      if (score < best_score) {
-        best_score = score;
-      }
-    }
-    return best_score;
-  }
-}
-
-function ai_move() {
-  let best_score = -Infinity;
-  let best_move = -1;
-  let variation_moves = [];
-  for (let move of available_moves(main_board)) {
-    let new_board = copy_board_place(main_board, move, AI_side);
-    let score = minimax(new_board, 0, false);
-    if (score > best_score) {
-      best_score = score;
-      best_move = move;
-      variation_moves = [];
-      variation_moves.push(move);
-    }
-    else if (score == best_score) {
-      variation_moves.push(move);
-    }
-  }
-  return chooseRandomElement(variation_moves);
-}
-
-function chooseRandomElement(arr) {
-  let randomIndex = Math.floor(Math.random() * arr.length);
-  return arr[randomIndex];
-}
