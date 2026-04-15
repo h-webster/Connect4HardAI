@@ -8,11 +8,15 @@ const CELL = 58;
 const BOARD_X = (600 - 7 * CELL) / 2; // 97
 const BOARD_Y = 108;
 
+let gameStarted = false;
 function setup() {
   createCanvas(600, 600);
   main_board = create_new_board();
   let whoStarts = Math.floor(Math.random() * 2);
   main_turn = whoStarts == 0 ? "R" : "B";
+}
+function start() {
+  gameStarted = true;
   if (AI_side == main_turn) {
     setTimeout(() => {
       console.log("hello");
@@ -36,6 +40,9 @@ function draw() {
   draw_board();
   draw_tiles(main_board);
   draw_status();
+  if (!gameStarted) {
+    drawStartScreen();
+  }
 }
 
 function draw_status() {
@@ -237,6 +244,8 @@ function game_state(board) {
 }
 
 function keyPressed() {
+  if (!gameStarted) 
+    return;
   if (main_state != "ongoing") {
     return;
   }
@@ -255,6 +264,11 @@ function keyPressed() {
     }
   }
 }
+
+function mousePressed() {
+  startButtonPressed();
+}
+
 // not used
 function random_vs_random() {
   main_state = game_state(main_board);
