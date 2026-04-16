@@ -2,7 +2,7 @@ let hovered = false;
 function drawStartScreen() {
     fill(0, 0, 0, 160);
     noStroke();
-    rect(0, height / 2 - (height/8), width, height/4, 20);
+    rect(width / 2 - (width * 0.7) / 2, height / 2 - (height * 0.7) / 2, width * 0.7, height * 0.7, 20);
     let btnW = 160, btnH = 52;
     let btnX = width / 2 - btnW / 2;
     let btnY = height / 2 - btnH / 2;
@@ -23,6 +23,8 @@ function startButtonPressed() {
     if (!gameStarted) {
         if (hovered) {
             start();
+            return true;
         }
     }
+    return false;
 }

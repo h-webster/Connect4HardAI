@@ -3,14 +3,17 @@ let main_turn = "B";
 let main_state = "ongoing";
 let status = "";
 let AI_side = "B";
+let selectedCell = -1;
 // BLUE IS YELLOW I REALIZED AFTER IN THE REAL GAME
+const W = window.innerWidth * 1;
+const H = window.innerHeight * 1;
 const CELL = 58;
-const BOARD_X = (600 - 7 * CELL) / 2; // 97
-const BOARD_Y = 108;
+const BOARD_X = (W - 7 * CELL) / 2; 
+const BOARD_Y = (H - 7 * CELL) / 2;
 
 let gameStarted = false;
 function setup() {
-  createCanvas(600, 600);
+  createCanvas(W, H);
   main_board = create_new_board();
   let whoStarts = Math.floor(Math.random() * 2);
   main_turn = whoStarts == 0 ? "R" : "B";
@@ -19,8 +22,7 @@ function start() {
   gameStarted = true;
   if (AI_side == main_turn) {
     setTimeout(() => {
-      console.log("hello");
-      // make ai first move if moving first the center (optimal move)
+      // make ai first move the center (optimal move)
       main_place(4);
     }, 500);      
   }
@@ -32,14 +34,16 @@ function draw() {
   fill(255);
   textSize(22);
   textStyle(BOLD);
-  text("Connect 4  — Very Hard AI", BOARD_X, 42);
+  text("Connect 4  — Very Hard AI", BOARD_X, BOARD_Y - 55);
   textStyle(NORMAL);
   textSize(13);
   fill(140, 155, 200);
-  text("By Wonkanese   •   Press 1–7 to place a piece", BOARD_X, 64);
+  text("By Harrison", BOARD_X, BOARD_Y - 35);
   draw_board();
   draw_tiles(main_board);
+  if (!botThinking && gameStarted) draw_placeable(main_board);
   draw_status();
+  drawConfetti();
   if (!gameStarted) {
     drawStartScreen();
   }
@@ -49,10 +53,10 @@ function draw_status() {
   let status_color;
   if (main_state == "ongoing") {
     if (main_turn == "R") {
-      status = "Red's turn";
+      status = "Red's turn (You)";
       status_color = color(220, 75, 75);
     } else {
-      status = "Yellow's turn";
+      status = "Yellow's turn (Bot)";
       status_color = color(224, 219, 70);
     }
   } else {
@@ -89,6 +93,7 @@ function draw_board() {
   rect(BOARD_X - 10, BOARD_Y - 10, 7 * CELL + 20, 7 * CELL + 20, 14);
 
   // Column numbers
+  /*
   fill(180, 200, 255);
   textSize(14);
   textStyle(BOLD);
@@ -96,7 +101,7 @@ function draw_board() {
     text(i + 1, BOARD_X + i * CELL + CELL / 2 - 4, BOARD_Y - 16);
   }
   textStyle(NORMAL);
-
+  */
   // Empty cell holes
   fill(14, 18, 38);
   for (let row = 0; row < 7; row++) {
@@ -116,14 +121,34 @@ function draw_tiles(board) {
         fill(215, 60, 60);
         stroke(255, 130, 130);
       } else {
-        fill(217, 225, 55);
-        stroke(240, 236, 19);
+        fill(210, 220, 53);
+        stroke(255, 249, 105);
       }
       strokeWeight(2);
       circle(x_pos, y_pos, CELL - 10);
       noStroke();
     });
   });
+}
+
+function draw_placeable(board) {
+  let xMouseCell = (mouseX - BOARD_X) / CELL;
+  if (xMouseCell < 7 && xMouseCell > 0) {
+    let dropped = drop_down(board, Math.floor(xMouseCell));
+    if (dropped != -1) {
+      let y_pos = BOARD_Y + (6 - dropped) * CELL + CELL / 2;
+      let x_pos = BOARD_X + Math.floor(xMouseCell) * CELL + CELL / 2;
+      strokeWeight(2);
+      fill(191, 191, 191, 50);
+      circle(x_pos, y_pos, CELL - 10);
+      selectedCell = Math.floor(xMouseCell);
+      noStroke();
+    } else {
+      selectedCell = -1;
+    }
+  } else {
+    selectedCell = -1;
+  }
 }
 
 function drop_down(board, x) {
@@ -243,30 +268,34 @@ function game_state(board) {
   return "tie";
 }
 
-function keyPressed() {
+function cellPlace() {
   if (!gameStarted) 
     return;
   if (main_state != "ongoing") {
     return;
   }
-  let nums = "1234567";
-  if (nums.includes(key) && main_turn == "R") {
-    let slot_to_move = parseInt(key) - 1;
+  if (selectedCell != -1 && main_turn == "R" && !botThinking) {
     let moves = available_moves(main_board);
-    if (moves.includes(slot_to_move)) {
-      main_place(slot_to_move + 1);
+    if (moves.includes(selectedCell)) {
+      main_place(selectedCell + 1);
       main_state = game_state(main_board);
       if (main_state == "ongoing") {
         setTimeout(() => {
-          main_place(ai_move() + 1);
-        }, 100); 
+          ai_start();
+        }, 100);
+      } else if (main_state == "R") {
+        launchConfetti();
       }
     }
   }
 }
 
 function mousePressed() {
-  startButtonPressed();
+  let clicked = startButtonPressed();
+  if (clicked) {
+    return;
+  }
+  cellPlace();
 }
 
 // not used
