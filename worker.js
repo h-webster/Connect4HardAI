@@ -83,7 +83,7 @@ function game_state(board) {
 function minimax(board, depth, maximizing, AI_side) {
   let result = game_state(board);
   if (result != "ongoing") return getScore(result, depth);
-  if (depth >= 2) return 0;
+  if (depth >= 7) return 0;
   if (maximizing) {
     let best_score = -Infinity;
     for (let move of available_moves(board)) {
