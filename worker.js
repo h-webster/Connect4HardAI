@@ -80,14 +80,14 @@ function game_state(board) {
   return "tie";
 }
 
-function minimax(board, depth, maximizing, AI_side) {
+function minimax(board, depth, maximizing, AI_side, maxDepth) {
   let result = game_state(board);
   if (result != "ongoing") return getScore(result, depth);
-  if (depth >= 7) return 0;
+  if (depth >= maxDepth) return 0;
   if (maximizing) {
     let best_score = -Infinity;
     for (let move of available_moves(board)) {
-      let score = minimax(copy_board_place(board, move, AI_side), depth + 1, false, AI_side);
+      let score = minimax(copy_board_place(board, move, AI_side), depth + 1, false, AI_side, maxDepth);
       if (score > best_score) best_score = score;
     }
     return best_score;
@@ -95,20 +95,26 @@ function minimax(board, depth, maximizing, AI_side) {
     let best_score = Infinity;
     let human_side = AI_side == "B" ? "R" : "B";
     for (let move of available_moves(board)) {
-      let score = minimax(copy_board_place(board, move, human_side), depth + 1, true, AI_side);
+      let score = minimax(copy_board_place(board, move, human_side), depth + 1, true, AI_side, maxDepth);
       if (score < best_score) best_score = score;
     }
     return best_score;
   }
 }
 
+const DEPTH_LIMIT  = { easy: 2, medium: 4, hard: 7 };
+const RANDOM_CHANCE = { easy: 0.40, medium: 0.1, hard: 0 };
+
 self.onmessage = function(e) {
-  let { board, AI_side } = e.data;
+  let { board, AI_side, level } = e.data;
+  let maxDepth    = DEPTH_LIMIT[level]   ?? 7;
+  let randomChance = RANDOM_CHANCE[level] ?? 0;
+
   let best_score = -Infinity;
   let best_move = -1;
   let variation_moves = [];
   for (let move of available_moves(board)) {
-    let score = minimax(copy_board_place(board, move, AI_side), 0, false, AI_side);
+    let score = minimax(copy_board_place(board, move, AI_side), 0, false, AI_side, maxDepth);
     if (score > best_score) {
       best_score = score;
       best_move = move;
@@ -118,5 +124,8 @@ self.onmessage = function(e) {
     }
   }
   let chosen = variation_moves[Math.floor(Math.random() * variation_moves.length)];
+  if (Math.random() < randomChance) {
+    chosen = available_moves(board)[Math.floor(Math.random() * available_moves(board).length)];
+  }
   self.postMessage({ move: chosen });
 };

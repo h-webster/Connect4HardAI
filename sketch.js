@@ -14,6 +14,7 @@ const BOARD_Y = (H - 7 * CELL) / 2;
 let gameStarted = false;
 function setup() {
   createCanvas(W, H);
+  initButtons();
   main_board = create_new_board();
   let whoStarts = Math.floor(Math.random() * 2);
   main_turn = whoStarts == 0 ? "R" : "B";
@@ -32,13 +33,13 @@ function draw() {
   background(18, 22, 42);
   noStroke();
   fill(255);
-  textSize(22);
+  textSize(24);
   textStyle(BOLD);
-  text("Connect 4  — Very Hard AI", BOARD_X, BOARD_Y - 55);
+  text("Connect 4", BOARD_X, H * 0.1);
   textStyle(NORMAL);
-  textSize(13);
+  textSize(15);
   fill(140, 155, 200);
-  text("By Harrison", BOARD_X, BOARD_Y - 35);
+  text("By Harrison", BOARD_X, H * 0.1 + 25);
   draw_board();
   draw_tiles(main_board);
   if (!botThinking && gameStarted) draw_placeable(main_board);
@@ -70,6 +71,7 @@ function draw_status() {
       status = "Yellow Won!";
       status_color = color(224, 219, 70);
     }
+    retryButton.render();
   }
   noStroke();
   textSize(22);
@@ -291,7 +293,8 @@ function cellPlace() {
 }
 
 function mousePressed() {
-  let clicked = startButtonPressed();
+  let clicked = buttonPressed();
+  let retry = retryButtonPressed();
   if (clicked) {
     return;
   }
